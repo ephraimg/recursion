@@ -6,5 +6,22 @@
 // But instead we're going to implement it from scratch:
 var getElementsByClassName = function(className
 ) {
-  // your code here
+    var output = (output || []);
+	var checkElement = function(elem) {
+		if (elem.classList !== undefined) {
+          if (elem.classList.contains(className)) {
+		  output.push(elem);
+		  };
+		};
+	    if (elem.hasChildNodes) {
+		  elem.childNodes.forEach(function (x) {checkElement(x)});
+	    };
+	};
+	console.log(document.body.childNodes);
+	checkElement(document.body);
+	console.log(output);
+	return output;
 };
+
+
+
