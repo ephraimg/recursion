@@ -17,9 +17,7 @@ var getElementsByClassName = function(className
 		  elem.childNodes.forEach(function (x) {checkElement(x)});
 	    };
 	};
-	console.log(document.body.childNodes);
 	checkElement(document.body);
-	console.log(output);
 	return output;
 };
 
