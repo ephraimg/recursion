@@ -95,8 +95,8 @@ var parseJSON = function(json) {
 
     var getElement = function(str) {
       for (let i = 0; i < str.length; i++) {
-        var parsedSlice = mainRoutine(str.slice(0, i + 1));
-        console.log("ParsedSlice attempt is: ",str.slice(0, i + 1))
+        var parsedSlice = mainRoutine(str.slice(0, i + 1).trim());
+        console.log("ParsedSlice attempt for array element is: ",str.slice(0, i + 1))
         if (parsedSlice === undefined) {
           console.log("...failed!")
           continue
@@ -110,9 +110,7 @@ var parseJSON = function(json) {
         }
       }
       return undefined;
-    };
-    
-    //console.log(getElement('[78]'))
+    };    
 
     var processElement = function(str, arr) {
       console.log("Processing element...")
@@ -132,6 +130,7 @@ var parseJSON = function(json) {
 
     var newArr = [];
     var inner = json.slice(1, json.length - 1);
+    inner = inner.trim();
     console.log("Parsing array. Inner is: ", inner,"of type", typeof inner)
     while (inner.length > 0) {
       console.log("In the while loop...");
@@ -181,18 +180,45 @@ var parseJSON = function(json) {
 
 // STRINGS
 
-	var regexJSONstr = /^\"[(\\\")(\\\/)(\\b)(\\f)(\\n)(\\r)(\\t)a-zA-Z0-9\,\s]*\"$/;
+	var regexJSONstr = /^\"[-(\\\\)(\\")(\\')(\\/)(\\b)(\\f)(\\n)(\\r)(\\t)a-zA-Z0-9\,\s\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F\u02B0-\u02FF\u2000-\u206F\u2070-\u209F\u20A0-\u20CF\u2100-\u214F\u2150-\u218F\u2190-\u21FF\u2200-\u22FF\u2300-\u23FF\u2980-\u29FF\u2A00-\u2AFF\u2B00-\u2BFF]*\"$/;
 	// unicode is a problem... \u0080-\u0021\u0023-\u005B\u005D-\u007F\uFFF0-\uFFFF
 	// (\\u((0-9)|(A-F))((0-9)|(A-F))((0-9)|(A-F))((0-9)|(A-F)))
 	// \u0080-\u00FF
 	var parseJSONstr = function(json) {
 		if (regexJSONstr.test(json)) {
-			 var matchedStr = json.match(regexJSONstr)[0];
-			 return matchedStr.slice(1,matchedStr.length-1)
-		} else {
-			return undefined;
-		};
-	};
+      var matchedStr = json.match(regexJSONstr)[0];
+      console.log("Matched string is: ", matchedStr);
+
+      var newStr = '';
+      var shouldKeep = false;
+      for (let i = 0; i < matchedStr.length; i++) {
+        console.log("\n Starting new i. newStr is: ", newStr, "\n");
+        console.log("i is: ", i, "matchedStr[i] is: ", matchedStr[i]);
+        if (matchedStr[i] === '\\') {
+            console.log("Found a slash");
+            if (shouldKeep === false) {
+              console.log("Ignoring it")
+              shouldKeep = true;
+              //continue;
+            } else {
+              console.log("Adding it to newStr");
+              newStr += matchedStr[i];
+              shouldKeep = false;
+            };
+        } else {
+          console.log("Non-slash, so adding it to newStr");
+          newStr += matchedStr[i]
+          shouldKeep = false;
+		    };
+	    };
+      console.log("Final newStr is: ", newStr);
+      console.log(newStr.slice(1, newStr.length-1))
+
+       return newStr.slice(1, newStr.length-1);
+    } else {
+      return undefined;
+    };
+  };
 	
   // MAIN ROUTINE
 
@@ -210,10 +236,12 @@ var parseJSON = function(json) {
       return parseJSONarr(json);
     }
     if (json[0] === '{' && isCurlyMatched(json)) {
+      console.log("Found an object!");
 	   	return parseJSONobj(json);
 	  };
   };
   
+  json = json.replace(/[\r\n]/g, '');
   return mainRoutine(json);
 };
 
